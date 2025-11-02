@@ -1,0 +1,22 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  --- THIS IS THE FIX FOR "SPEED SCROLL" ---
+  This one line activates the "smooth" prop on your HashLinks
+*/
+html {
+  @apply scroll-smooth;
+}
+
+@layer components {
+  .container {
+    @apply w-11/12 max-w-6xl mx-auto px-4;
+  }
+}
+
+body {
+  @apply bg-gray-50 text-gray-800 antialiased;
+}
