@@ -13,9 +13,9 @@
     "framer-motion": "^12.23.24",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-parallax-tilt": "^1.7.313",
     "react-router-dom": "^7.9.5",
     "react-router-hash-link": "^2.4.3",
-    "react-tilt": "^1.0.2",
     "vanilla-tilt": "^1.8.1",
     "yet-another-react-lightbox": "^3.25.0"
   },
