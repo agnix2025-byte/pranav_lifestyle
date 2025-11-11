@@ -1,5 +1,4 @@
 // src/components/Programs.tsx
-import React from 'react';
 import { motion } from 'framer-motion'; // 1. Import motion
 
 const Programs = () => {
