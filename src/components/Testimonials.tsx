@@ -1,5 +1,5 @@
 // src/components/Testimonials.tsx
-import React, { useState } from 'react'; // 1. Import useState
+import  { useState } from 'react'; // 1. Import useState
 import TestimonialCard from './TestimonialCard';
 import { motion } from 'framer-motion'; // 2. Import motion
 

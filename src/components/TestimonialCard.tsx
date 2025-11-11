@@ -1,5 +1,4 @@
 // src/components/TestimonialCard.tsx
-import React from 'react';
 import { motion } from 'framer-motion';
 
 interface TestimonialCardProps {

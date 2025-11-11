@@ -1,5 +1,4 @@
 // src/components/Services.tsx
-import React from 'react';
 import ServiceCard from './ServiceCard';
 import { motion } from 'framer-motion'; // 1. Import motion
 

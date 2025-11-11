@@ -1,6 +1,4 @@
 // src/components/Footer.tsx
-import React from 'react';
-
 const Footer = () => {
   return (
     // UPDATED: Changed to a light "White and Green" theme
