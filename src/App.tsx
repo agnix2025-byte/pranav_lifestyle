@@ -1,6 +1,7 @@
 // src/App.tsx
 import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
 
 // Import Public Components
 import Navbar from './components/Navbar';
@@ -19,10 +20,10 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import AdminDashboard from './pages/AdminDashboard';
 import AddClientPage from './pages/AddClientPage';
-
-// --- IMPORT THE NEW EDIT CLIENT PAGE ---
 import EditClientPage from './pages/EditClientPage';
 
+// 🔐 NEW
+import ProtectedRoute from './components/ProtectedRoute';
 
 // --- Animation Definitions ---
 const pageAnimation = {
@@ -62,7 +63,7 @@ const PublicLayout = () => {
       <section id="contact"><Footer /></section>
     </>
   );
-}
+};
 
 const ClientLayout = () => {
   const location = useLocation();
@@ -80,7 +81,7 @@ const ClientLayout = () => {
       </main>
     </>
   );
-}
+};
 
 const AdminLayout = () => {
   const location = useLocation();
@@ -98,35 +99,50 @@ const AdminLayout = () => {
       </main>
     </>
   );
-}
+};
 
 // --- Define all app routes ---
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        
+
         {/* --- Public Website Routes --- */}
         <Route path="/" element={<PublicLayout />}>
           <Route index element={<HomePage />} />
           <Route path="contact" element={<ContactPage />} />
           <Route path="login" element={<LoginPage />} />
+          {/* simple not-authorized page */}
+          <Route
+            path="not-authorized"
+            element={<div className="p-8 text-center">You are not allowed to view this page.</div>}
+          />
         </Route>
 
-        {/* --- Client Portal Routes (Protected) --- */}
-        <Route path="/dashboard" element={<ClientLayout />}>
+        {/* --- Client Portal Routes (Protected: any logged-in user) --- */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <ClientLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<DashboardPage />} />
         </Route>
 
-        {/* --- Admin Portal Routes (Protected) --- */}
-        <Route path="/admin" element={<AdminLayout />}>
+        {/* --- Admin Portal Routes (Protected: admin only) --- */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requireAdmin>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<AdminDashboard />} />
           <Route path="add-client" element={<AddClientPage />} />
-          
-          {/* --- THIS IS THE NEW DYNAMIC ROUTE --- */}
-          {/* :clientId is a URL parameter that EditClientPage will read */}
           <Route path="edit-client/:clientId" element={<EditClientPage />} />
-          
         </Route>
 
       </Routes>
@@ -135,4 +151,3 @@ function App() {
 }
 
 export default App;
-

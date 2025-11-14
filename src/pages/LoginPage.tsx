@@ -1,24 +1,42 @@
 // src/pages/LoginPage.tsx
-import React from 'react';
-import { useNavigate } from 'react-router-dom'; // 1. Import useNavigate
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../api";
 
-const LoginPage = () => {
-  
-  const navigate = useNavigate(); // 2. Get the navigate function
+const LoginPage: React.FC = () => {
+  const navigate = useNavigate();
 
-  // 3. Update handleSubmit to navigate
-  const handleSubmit = (e: React.FormEvent) => {
+  const [email, setEmail] = useState("admin@client.com"); // demo default
+  const [password, setPassword] = useState("Admin@123");  // demo default
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you'd check username/password here
-    // For our mock, we just navigate to the dashboard.
-    navigate('/dashboard'); 
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await api.post("/auth/login", { email, password });
+
+      // backend sends: { message, user: { email, role } }
+      const role = res.data.user.role as "admin" | "user";
+
+      if (role === "admin") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="container py-16 md:py-24 min-h-[70vh] flex items-center justify-center">
-      
-      {/* Form Card (unchanged) */}
-      <form 
+      <form
         className="max-w-md w-full mx-auto bg-white p-8 md:p-10 rounded-xl shadow-2xl"
         onSubmit={handleSubmit}
       >
@@ -26,37 +44,53 @@ const LoginPage = () => {
           Client Portal Login
         </h2>
 
+        {error && (
+          <p className="mb-4 text-center text-red-600 text-sm">{error}</p>
+        )}
+
         <div className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Email Address:
             </label>
-            <input 
-              type="email" 
-              id="email" 
+            <input
+              type="email"
+              id="email"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required 
-              defaultValue="admin@email.com" // Added a default for demo
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
+
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Password:
             </label>
-            <input 
-              type="password" 
-              id="password" 
+            <input
+              type="password"
+              id="password"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required 
-              defaultValue="password" // Added a default for demo
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <button 
-            type="submit" 
-            className="w-full py-3 px-6 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-300 text-lg"
+
+          <button
+            type="submit"
+            className="w-full py-3 px-6 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-300 text-lg disabled:opacity-60"
+            disabled={loading}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
+
           <div className="text-center">
             <a href="#" className="text-sm text-blue-600 hover:underline">
               Forgot your password?
