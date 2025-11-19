@@ -1,9 +1,8 @@
 // src/pages/AddClientPage.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import api from "../api"; // 👈 use your axios instance
+import api from "../api";
 
-// Spinner component
 const Spinner = () => (
   <svg
     className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
@@ -27,6 +26,15 @@ const Spinner = () => (
   </svg>
 );
 
+type Client = {
+  id: string;
+  name: string;
+  email: string;
+  plan: string;
+  startDate: string;
+  dueDate: string;
+};
+
 const AddClientPage: React.FC = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -37,6 +45,26 @@ const AddClientPage: React.FC = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const [clients, setClients] = useState<Client[]>([]);
+  const [listLoading, setListLoading] = useState(true);
+
+  // 👉 Fetch clients on mount
+  const fetchClients = async () => {
+    try {
+      setListLoading(true);
+      const res = await api.get<Client[]>("/admin/users");
+      setClients(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setListLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchClients();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -44,7 +72,6 @@ const AddClientPage: React.FC = () => {
     setSuccess("");
 
     try {
-      // 🔥 Call your backend: POST /api/admin/users
       const res = await api.post("/admin/users", {
         name,
         email,
@@ -53,13 +80,16 @@ const AddClientPage: React.FC = () => {
         role: "user",
       });
 
+      setSuccess(`Client account created for ${res.data.user.email}`);
 
-      setSuccess(`Client account created for ${res.data.email}`);
-      // Reset fields
+      // reset fields
       setName("");
       setEmail("");
       setPassword("");
       setPlan("3 Day Trial");
+
+      // refresh list
+      fetchClients();
     } catch (err: any) {
       const msg =
         err.response?.data?.message ||
@@ -71,8 +101,22 @@ const AddClientPage: React.FC = () => {
     }
   };
 
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+
+  const getStatus = (dueDateStr: string) => {
+    const today = new Date();
+    const due = new Date(dueDateStr);
+    return due < today ? "Payment Due" : "Active";
+  };
+
   return (
-    <div className="container py-16 min-h-[70vh]">
+    <div className="container py-16 min-h-[70vh] space-y-12">
+      {/* Form */}
       <motion.form
         className="max-w-xl mx-auto bg-white p-8 md:p-10 rounded-xl shadow-2xl"
         onSubmit={handleSubmit}
@@ -166,10 +210,11 @@ const AddClientPage: React.FC = () => {
             type="submit"
             className={`w-full py-3 px-6 text-white font-semibold rounded-lg shadow-md text-lg 
                         transition-all duration-300 flex items-center justify-center
-                        ${isLoading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-brand-green hover:bg-brand-green-dark hover:-translate-y-0.5 active:scale-95"
-              }`}
+                        ${
+                          isLoading
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-brand-green hover:bg-brand-green-dark hover:-translate-y-0.5 active:scale-95"
+                        }`}
             disabled={isLoading}
           >
             {isLoading ? (
@@ -183,6 +228,56 @@ const AddClientPage: React.FC = () => {
           </button>
         </div>
       </motion.form>
+
+      {/* Clients table */}
+      <div className="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow-lg">
+        <h3 className="text-2xl font-semibold mb-4">Clients & Plans</h3>
+
+        {listLoading ? (
+          <div className="py-8 text-center">Loading clients...</div>
+        ) : clients.length === 0 ? (
+          <div className="py-8 text-center text-gray-500">
+            No clients created yet.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2 px-3">Name</th>
+                  <th className="text-left py-2 px-3">Email</th>
+                  <th className="text-left py-2 px-3">Plan</th>
+                  <th className="text-left py-2 px-3">Start Date</th>
+                  <th className="text-left py-2 px-3">Due Date</th>
+                  <th className="text-left py-2 px-3">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clients.map((c) => (
+                  <tr key={c.id} className="border-b last:border-0">
+                    <td className="py-2 px-3">{c.name}</td>
+                    <td className="py-2 px-3">{c.email}</td>
+                    <td className="py-2 px-3">{c.plan}</td>
+                    <td className="py-2 px-3">{formatDate(c.startDate)}</td>
+                    <td className="py-2 px-3">{formatDate(c.dueDate)}</td>
+                    <td className="py-2 px-3">
+                      <span
+                        className={
+                          getStatus(c.dueDate) === "Payment Due"
+                            ? "text-red-600 font-semibold"
+                            : "text-green-600 font-semibold"
+                        }
+                      >
+                        {getStatus(c.dueDate)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
